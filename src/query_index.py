@@ -145,8 +145,8 @@ def fiftyone_docs_search(
 
 
 
-class FiftyOneDocsSearch():
-    """Class for handling FiftyOneDocsSearch queries."""
+class Ue5DocSearch():
+    """Class for handling unreal engine documentation queries."""
     def __init__(
             self, 
             top_k = None, 
@@ -201,5 +201,5 @@ if __name__ == "__main__":
     parser.add_argument('--score', type=bool, default=False)
     parser.add_argument('--open_url', type=bool, default=True)
     args = parser.parse_args()
-    fosearch = FiftyOneDocsSearch(open_url=args.open_url, top_k=args.top_k, score=args.score, block_types=args.block_types)
+    fosearch = Ue5DocSearch(open_url=args.open_url, top_k=args.top_k, score=args.score, block_types=args.block_types)
     fosearch(args.query)
