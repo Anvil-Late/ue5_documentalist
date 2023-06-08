@@ -1,4 +1,5 @@
 import re
+from urllib.parse import urlparse
 
 def remove_dash_sequences(string):
     """Remove dash sequences from the string.
@@ -102,6 +103,27 @@ def split_text_into_components(text):
     return "\n".join(components)
 
 
+def extract_info_from_url(url):
+    """Extract the info from the url.
+
+    Args:
+        url (str): Url to extract the info from.
+
+    Returns:
+        str: The info extracted from the url.
+    """
+    parsed_url = urlparse(url)
+    path = parsed_url.path.strip('/')  # Remove leading and trailing slashes
+
+    if path.endswith('/'):
+        path = path[:-1]  # Remove trailing slash
+
+    # Extract the last part of the path
+    info = path.split('/')[-1]
+
+    return info
+
+
 def check_total_number_of_characters(files_dir):
     """Check the total number of characters in the files.
     
@@ -130,3 +152,12 @@ def check_total_number_of_words(files_dir):
             content = f.read()
         total_words += len(content.split())
     print(f"Total number of words: {total_words}")
+
+
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--files_dir', type=str, default='/Volumes/credentials/openai/files')
+    args = parser.parse_args()
+    check_total_number_of_characters(args.files_dir)
+    check_total_number_of_words(args.files_dir)
