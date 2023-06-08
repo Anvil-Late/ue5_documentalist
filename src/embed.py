@@ -5,6 +5,7 @@ import argparse
 import pickle
 import json
 import os
+from tqdm import tqdm
 
 def embed(subsection_dict_path, security):
     """Embed the files in the directory.
@@ -19,6 +20,16 @@ def embed(subsection_dict_path, security):
         embeddings (dict): Dictionary containing the embeddings.
     """
 
+    # If embeddings already exist, load them
+    if os.path.exists(os.path.join("./embeddings", 'embeddings.json')):
+        print("Embeddings already exist. Loading them.")
+        with open(os.path.join("./embeddings", 'embeddings.json'), 'r') as f:
+            embeddings = json.load(f)
+
+    else:
+        # initialize dictionary to store embeddings
+        embeddings = {}
+
     # check security
     if security != "deactivated":
         raise Exception("Security is not deactivated.")
@@ -27,8 +38,6 @@ def embed(subsection_dict_path, security):
     with open(subsection_dict_path, 'r') as f:
         subsection_dict = json.load(f)
 
-    # initialize dictionary to store embeddings
-    embeddings = {}
 
     # For debugging purposes only
     # Compute average text length to embed
@@ -45,9 +54,14 @@ def embed(subsection_dict_path, security):
     openai.api_key = api_key
     
     # loop through subsections
-    for url, subsection in subsection_dict.items():
+    for url, subsection in tqdm(subsection_dict.items()):
         subsection_name = subsection['title']
         text_to_embed = subsection['content']
+
+        # skip if already embedded
+        if url in embeddings.keys():
+            continue
+
         # make request for embedding
         try:
             response = openai.Embedding.create(
@@ -68,6 +82,16 @@ def embed(subsection_dict_path, security):
             "title": subsection_name,
             "embedding": embedding
         }
+
+        # save dictionary every 100 iterations
+        if len(embeddings) % 100 == 0:
+            print(f"Saving embeddings after {len(embeddings)} iterations.")
+            # save embeddings to pickle file
+            with open(os.path.join("./embeddings", 'embeddings.pkl'), 'wb') as f:
+                pickle.dump(embeddings, f)
+            # save embeddings to json file
+            with open(os.path.join("./embeddings", 'embeddings.json'), 'w') as f:
+                json.dump(embeddings, f)
 
     return embeddings
 
