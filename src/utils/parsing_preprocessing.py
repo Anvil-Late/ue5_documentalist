@@ -152,12 +152,3 @@ def check_total_number_of_words(files_dir):
             content = f.read()
         total_words += len(content.split())
     print(f"Total number of words: {total_words}")
-
-
-if __name__ == "__main__":
-    import argparse
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--files_dir', type=str, default='/Volumes/credentials/openai/files')
-    args = parser.parse_args()
-    check_total_number_of_characters(args.files_dir)
-    check_total_number_of_words(args.files_dir)
