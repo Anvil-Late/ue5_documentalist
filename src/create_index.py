@@ -42,7 +42,6 @@ def add_doc_to_index(embeddings, content_dict):
     payloads = []
     
     for url, content in tqdm(embeddings.items()):
-        print(f"Processing url {url}")
         section_anchor = content['title']
         section_vector = content['embedding']
         section_content = content_dict[url]['content']
@@ -54,16 +53,16 @@ def add_doc_to_index(embeddings, content_dict):
         ids.append(id)
         vectors.append(section_vector)
         payloads.append(payload)
-    
-    ## Add vectors to collection
-    client.upsert(
-        collection_name=COLLECTION_NAME,
-        points=qmodels.Batch(
-            ids = ids,
-            vectors=vectors,
-            payloads=payloads
-        ),
-    )
+
+        # Add vectors to collection
+        client.upsert(
+            collection_name=COLLECTION_NAME,
+            points=qmodels.Batch(
+                ids = [id],
+                vectors=[section_vector],
+                payloads=[payload]
+            ),
+        )
 
 
 if __name__ == "__main__":
