@@ -10,17 +10,18 @@ UE5 Documentalist is a Python Project that allows user to make natural language 
 
 Before running the script, you need to perform the following steps:
 
-1. Parse the documentation using `parse.py`: `python parse.py --security public`
-2. Embed the subsections using `embed.py`: `python embed.py --embedder openai --security public`
+1. Parse the documentation using `parse.py`: `python src/parse.py --urls_registry <PATH_TO_URLS_TO_PARSE> --subsections_path <OUTPUT_PATH>`
+2. Embed the subsections using `embed.py`: `python src/embed.py --embedder <EMBEDDER> --subsections_path <OUTPUT_PATH_OF_PARSE.PY>`. Embedder can be either `instructor` or `openai`. If you use `openai`, since it is a pay-as-you-go API, you need to add `--security deactivated`, which is a param I set to avoid running the script by mistake and spend money on it.
 3. Create a Qdrant vector index by running the following commands: `docker pull qdrant/qdrant docker run -d -p 6333:6333 qdrant/qdrant`
 4. Install the Qdrant client using `pip install qdrant-client` (this is included in `requirements.txt`).
+5. Populate the Qdrant vector index unsing `create_index.py`: `python src/create_index.py --embedder <EMBEDDER> --embeddings_path <OUTPUT_PATH_OF_EMBED.PY> --content_path <OUTPUT_PATH_OF_PARSE.PY>`
 
 ## Usage
 
 1. Set your OpenAI API key as an environment variable: `export API_KEY=your-api-key` (only if you want to use OpenAI's text-embedding-ada-002 embedder)
 2. Run the script: `python query_index.py --embdedder <EMBEDDER> --query <QUERY>`
 
-## Options
+### Options
 
 - `--embedder`: The embedding model to use. Can be 'openai' or 'instructor'. Default is 'instructor'.
 - `--top_k`: The number of results to display. Default is 5.
