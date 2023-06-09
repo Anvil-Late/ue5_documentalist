@@ -9,8 +9,11 @@ CLIENT = qc.QdrantClient(url="localhost")
 METRIC = models.Distance.DOT
 DIMENSION = 1536
 
-with open('/Volumes/credentials/openai/api_key.txt', 'r') as protected_file:
-    api_key = protected_file.read()
+# Fetch API key from environment variable or prompt user for it
+api_key = os.getenv('API_KEY')
+if api_key is None:
+    api_key = input("Please enter your OpenAI API key: ")
+
 openai.api_key = api_key
 
 model = "text-embedding-ada-002"
@@ -52,6 +55,21 @@ def list_collections():
 
 
 def query_index(query, top_k=10, block_types=None):
+    """
+    Queries the OpenAI index for documents that match the given query.
+
+    Args:
+        query (str): The query to search for.
+        top_k (int, optional): The maximum number of documents to return. Defaults to 10.
+        block_types (str or list of str, optional): The types of document blocks to search in. Defaults to "text".
+
+    Returns:
+        A list of dictionaries representing the matching documents, sorted by relevance. Each dictionary contains the following keys:
+        - "id": The ID of the document.
+        - "score": The relevance score of the document.
+        - "text": The text content of the document.
+        - "block_type": The type of the document block that matched the query.
+    """
     collection_name = get_collection_name()
 
     if not collection_exists(collection_name):
@@ -125,13 +143,26 @@ def print_results(query, results, score=True):
     print('\n'*2)
 
 
-def fiftyone_docs_search(
+def ue5_docs_search(
     query, 
     top_k=10, 
     block_types=None,
     score=False,
     open_url=True
 ):
+    """
+    Searches the OpenAI index for documents related to the given query and prints the top results.
+
+    Args:
+        query (str): The query to search for.
+        top_k (int, optional): The maximum number of documents to return. Defaults to 10.
+        block_types (str or list of str, optional): The types of document blocks to search in. Defaults to "text".
+        score (bool, optional): Whether to include the relevance score in the output. Defaults to False.
+        open_url (bool, optional): Whether to open the top URL in a web browser. Defaults to True.
+
+    Returns:
+        None
+    """
     results = query_index(
         query,
         top_k=top_k,
@@ -189,7 +220,7 @@ class Ue5DocSearch():
         if open_url is not None:
             args_dict["open_url"] = open_url
 
-        fiftyone_docs_search(query, **args_dict)
+        ue5_docs_search(query, **args_dict)
 
 
 if __name__ == "__main__":
