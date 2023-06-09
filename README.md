@@ -28,7 +28,7 @@ Run the script: `python query_index.py --query <QUERY>`
 ## Usage (If you want to use OpenAI embedders)
 
 1. Set your OpenAI API key as an environment variable: `export API_KEY=your-api-key` 
-2. Run the script: `python query_index.py --embdedder openai --query <QUERY>`
+2. Run the script: `python query_index.py --embedder openai --query <QUERY>`
 
 ### Options
 
