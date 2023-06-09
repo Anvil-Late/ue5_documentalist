@@ -23,8 +23,12 @@ If you want to built this from scratch for your own use case, start from step 1.
 
 ## Usage
 
-1. Set your OpenAI API key as an environment variable: `export API_KEY=your-api-key` (only if you want to use OpenAI's text-embedding-ada-002 embedder)
-2. Run the script: `python query_index.py --embdedder <EMBEDDER> --query <QUERY>`
+Run the script: `python query_index.py --query <QUERY>`
+
+## Usage (If you want to use OpenAI embedders)
+
+1. Set your OpenAI API key as an environment variable: `export API_KEY=your-api-key` 
+2. Run the script: `python query_index.py --embdedder openai --query <QUERY>`
 
 ### Options
 
