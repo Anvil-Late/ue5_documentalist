@@ -1,6 +1,8 @@
 # UE5 Documentalist
 
-UE5 Documentalist is a Python Project that allows user to make natural language queries to the Unreal Engine documentation
+UE5 Documentalist is a Python Project that allows users to make natural language queries to the Unreal Engine documentation.
+
+You can, for instance ask 'what system can I to avoid collision between agents?' and be redirected to the documentation that best suits your needs.
 
 ## Example
 
