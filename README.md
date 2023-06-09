@@ -15,7 +15,7 @@ If you want to built this from scratch for your own use case, start from step 1.
 
 1. Parse the documentation using `parse.py`: `python src/parse.py --urls_registry <PATH_TO_URLS_TO_PARSE> --subsections_path <OUTPUT_PATH>`
 2. Embed the subsections using `embed.py`: `python src/embed.py --embedder <EMBEDDER> --subsections_path <OUTPUT_PATH_OF_PARSE.PY>`. Embedder can be either `instructor` or `openai`. If you use `openai`, since it is a pay-as-you-go API, you need to add `--security deactivated`, which is a param I set to avoid running the script by mistake and spend money on it.
-3. Create a Qdrant vector index by running the following commands: `docker pull qdrant/qdrant docker run -d -p 6333:6333 qdrant/qdrant`
+3. Create a Qdrant vector index by running the following commands:  `docker pull qdrant/qdrant`  and  `docker run -d -p 6333:6333 qdrant/qdrant`
 4. Install the Qdrant client using `pip install qdrant-client` (this is included in `requirements.txt`).
 5. Populate the Qdrant vector index unsing `create_index.py`: `python src/create_index.py --embedder <EMBEDDER> --embeddings_path <OUTPUT_PATH_OF_EMBED.PY> --content_path <OUTPUT_PATH_OF_PARSE.PY>`
 
