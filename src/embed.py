@@ -1,5 +1,7 @@
 import openai
 from openai.error import InvalidRequestError
+from InstructorEmbedding import INSTRUCTOR
+import torch
 import glob
 import argparse
 import pickle
@@ -7,7 +9,7 @@ import json
 import os
 from tqdm import tqdm
 
-def embed(subsection_dict_path, security):
+def embed(subsection_dict_path, embedder, security):
     """Embed the files in the directory.
 
     Args:
@@ -21,18 +23,19 @@ def embed(subsection_dict_path, security):
     """
 
     # If embeddings already exist, load them
-    if os.path.exists(os.path.join("./embeddings", 'embeddings.json')):
+    if os.path.exists(os.path.join("./embeddings", f'{embedder}_embeddings.json')):
         print("Embeddings already exist. Loading them.")
-        with open(os.path.join("./embeddings", 'embeddings.json'), 'r') as f:
+        with open(os.path.join("./embeddings", f'{embedder}_embeddings.json'), 'r') as f:
             embeddings = json.load(f)
 
     else:
         # initialize dictionary to store embeddings
         embeddings = {}
 
-    # check security
+    # check security if embedder is openai
     if security != "deactivated":
-        raise Exception("Security is not deactivated.")
+        if embedder == 'openai':
+            raise Exception("Security is not deactivated.")
     
     # load subsections
     with open(subsection_dict_path, 'r') as f:
@@ -47,11 +50,21 @@ def embed(subsection_dict_path, security):
         total_text_len += len(subsection['content'])
     avg_text_len = total_text_len / dict_len
 
-    # initialize openai api
-    model = "text-embedding-ada-002"
-    with open('/Volumes/credentials/openai/api_key.txt', 'r') as protected_file:
-        api_key = protected_file.read()
-    openai.api_key = api_key
+    # initialize openai api if embedder is 'openai'
+    if embedder == "openai":
+        openai_model = "text-embedding-ada-002"
+        # Fetch API key from environment variable or prompt user for it
+        api_key = os.getenv('API_KEY')
+        if api_key is None:
+            api_key = input("Please enter your OpenAI API key: ")
+        openai.api_key = api_key
+
+    # initialize instructor model if embedder is 'instructor'
+    elif embedder == "instructor":
+        instructor_model = INSTRUCTOR('hkunlp/instructor-xl')
+
+    else:
+        raise ValueError(f"Embedder must be 'openai' or 'instructor'. Not {embedder}")
     
     # loop through subsections
     for url, subsection in tqdm(subsection_dict.items()):
@@ -63,20 +76,31 @@ def embed(subsection_dict_path, security):
             continue
 
         # make request for embedding
-        try:
-            response = openai.Embedding.create(
-                input=text_to_embed,
-                model=model
-            )
-            embedding = response['data'][0]['embedding']
+        # case 1: openai
+        if embedder == 'openai':
+            try:
+                response = openai.Embedding.create(
+                    input=text_to_embed,
+                    model=openai_model
+                )
+                embedding = response['data'][0]['embedding']
 
-        except InvalidRequestError as e:
-            print(f"Error with url {url}")
-            print('The server couldn\'t fulfill the request.')
-            print('Error code: ', e.code)
-            print(f'Tried to embed {len(text_to_embed)} characters while average is {avg_text_len}')
-            continue
+            except InvalidRequestError as e:
+                print(f"Error with url {url}")
+                print('The server couldn\'t fulfill the request.')
+                print('Error code: ', e.code)
+                print(f'Tried to embed {len(text_to_embed)} characters while average is {avg_text_len}')
+                continue
 
+        # case 2: instructor
+        elif embedder == 'instructor':
+            instruction = "Represent the UnrealEngine documentation for retrieval:"
+            embedding = instructor_model.encode([[instruction, text_to_embed]], device=torch.device("mps"))
+            embedding = [float(x) for x in embedding.squeeze().tolist()]
+
+        else:
+            raise ValueError(f"Embedder must be 'openai' or 'instructor'. Not {embedder}")
+        
         # add embedding to dictionary
         embeddings[url] = {
             "title": subsection_name,
@@ -87,10 +111,10 @@ def embed(subsection_dict_path, security):
         if len(embeddings) % 100 == 0:
             print(f"Saving embeddings after {len(embeddings)} iterations.")
             # save embeddings to pickle file
-            with open(os.path.join("./embeddings", 'embeddings.pkl'), 'wb') as f:
+            with open(os.path.join("./embeddings", f'{embedder}_embeddings.pkl'), 'wb') as f:
                 pickle.dump(embeddings, f)
             # save embeddings to json file
-            with open(os.path.join("./embeddings", 'embeddings.json'), 'w') as f:
+            with open(os.path.join("./embeddings", f'{embedder}_embeddings.json'), 'w') as f:
                 json.dump(embeddings, f)
 
     return embeddings
@@ -98,14 +122,15 @@ def embed(subsection_dict_path, security):
 if __name__ == "__main__":
     
     parser = argparse.ArgumentParser()
+    parser.add_argument('--embedder', type=str, default='openai')
     parser.add_argument('--subsections_path', type=str, default='./documents/subsections.json')
     parser.add_argument('--security', type=str, default='activated')
     args = parser.parse_args()
-    embeddings = embed(args.subsections_path, args.security)
+    embeddings = embed(args.subsections_path, args.embedder, args.security)
     # save embeddings to pickle file
-    with open(os.path.join("./embeddings", 'embeddings.pkl'), 'wb') as f:
+    with open(os.path.join("./embeddings", f'{args.embedder}_embeddings.pkl'), 'wb') as f:
         pickle.dump(embeddings, f)
     # save embeddings to json file
-    with open(os.path.join("./embeddings", 'embeddings.json'), 'w') as f:
+    with open(os.path.join("./embeddings", f'{args.embedder}_embeddings.json'), 'w') as f:
         json.dump(embeddings, f)
 

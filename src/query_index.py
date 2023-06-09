@@ -1,29 +1,39 @@
 import openai
+from InstructorEmbedding import INSTRUCTOR
 import os
 import qdrant_client as qc
 import qdrant_client.http.models as models
 from rich import print
 import webbrowser
+import torch
 
 CLIENT = qc.QdrantClient(url="localhost")
 METRIC = models.Distance.DOT
-DIMENSION = 1536
 
-# Fetch API key from environment variable or prompt user for it
-api_key = os.getenv('API_KEY')
-if api_key is None:
-    api_key = input("Please enter your OpenAI API key: ")
+def embed_query(query, embedder):
 
-openai.api_key = api_key
+    if embedder == "openai":
+        # Fetch API key from environment variable or prompt user for it
+        api_key = os.getenv('API_KEY')
+        if api_key is None:
+            api_key = input("Please enter your OpenAI API key: ")
+        
+        openai_model = "text-embedding-ada-002"
 
-model = "text-embedding-ada-002"
-
-def embed_query(query):
-    response = openai.Embedding.create(
-                input=query,
-                model=model
-    )
-    embedding = response['data'][0]['embedding']
+        openai.api_key = api_key
+        response = openai.Embedding.create(
+                    input=query,
+                    model=openai_model
+        )
+        embedding = response['data'][0]['embedding']
+        
+    elif embedder == "instructor":
+        instructor_model = INSTRUCTOR('hkunlp/instructor-xl')
+        instruction = "Represent the UnrealEngine query for retrieving supporting documents:"
+        embedding = instructor_model.encode([[instruction, query]], device=torch.device("mps"))
+        embedding = [float(x) for x in embedding.squeeze().tolist()]
+    else:
+        raise ValueError("Embedder must be 'openai' or 'instructor'")
     return embedding
 
 
@@ -54,7 +64,7 @@ def list_collections():
     print(collection_names)
 
 
-def query_index(query, top_k=10, block_types=None):
+def query_index(query, embedder, top_k=10, block_types=None):
     """
     Queries the OpenAI index for documents that match the given query.
 
@@ -77,7 +87,7 @@ def query_index(query, top_k=10, block_types=None):
         
 
 
-    vector = embed_query(query)
+    vector = embed_query(query, embedder)
 
     _search_params = models.SearchParams(
         hnsw_ef=128,
@@ -145,6 +155,7 @@ def print_results(query, results, score=True):
 
 def ue5_docs_search(
     query, 
+    embedder=None,
     top_k=10, 
     block_types=None,
     score=False,
@@ -163,8 +174,12 @@ def ue5_docs_search(
     Returns:
         None
     """
+    # Check if embedder is 'openai' or 'instructor'. raise error if not
+    assert embedder in ['openai', 'instructor'], f"Embedder must be 'openai' or 'instructor'. Not {embedder}"
+
     results = query_index(
         query,
+        embedder=embedder,
         top_k=top_k,
         block_types=block_types
     )
@@ -180,11 +195,13 @@ class Ue5DocSearch():
     """Class for handling unreal engine documentation queries."""
     def __init__(
             self, 
+            embedder = "openai",
             top_k = None, 
             block_types = None, 
             score = False, 
             open_url = True
             ):
+        self.default_embedder = embedder
         self.default_top_k = top_k
         self.default_block_types = block_types
         self.default_score = score
@@ -193,12 +210,18 @@ class Ue5DocSearch():
     def __call__(
             self, 
             query, 
+            embedder = None,
             top_k = None, 
             block_types = None, 
             score = None, 
             open_url = None
             ):
         args_dict = {}
+
+        if embedder is None:
+            embedder = self.default_embedder
+        if embedder is not None:
+            args_dict["embedder"] = embedder
 
         if top_k is None:
             top_k = self.default_top_k
@@ -231,6 +254,11 @@ if __name__ == "__main__":
     parser.add_argument('--block_types', type=str, default='text')
     parser.add_argument('--score', type=bool, default=False)
     parser.add_argument('--open_url', type=bool, default=True)
+    parser.add_argument('--embedder', type=str, default='openai')
     args = parser.parse_args()
-    fosearch = Ue5DocSearch(open_url=args.open_url, top_k=args.top_k, score=args.score, block_types=args.block_types)
+    if args.embedder == 'openai':
+        DIMENSION = 1536
+    else:
+        DIMENSION = 768
+    fosearch = Ue5DocSearch(embedder=args.embedder, open_url=args.open_url, top_k=args.top_k, score=args.score, block_types=args.block_types)
     fosearch(args.query)
