@@ -7,7 +7,6 @@ from tqdm import tqdm
 
 client = qc.QdrantClient(url="localhost")
 METRIC = qmodels.Distance.DOT
-DIMENSION = 1536
 COLLECTION_NAME = "ue5_docs"
 
 def create_index():
@@ -67,9 +66,15 @@ def add_doc_to_index(embeddings, content_dict):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument('--embedder', type=str, default='openai')
     parser.add_argument('--embeddings_path', type=str, default='./embeddings/embeddings.json')
     parser.add_argument('--content_path', type=str, default='./documents/subsections.json')
     args = parser.parse_args()
+
+    if args.embedder == 'openai':
+        DIMENSION = 1536
+    else:
+        DIMENSION = 768
     
     with open(args.embeddings_path, 'r') as f:
         embeddings = json.load(f)

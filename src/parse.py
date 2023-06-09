@@ -4,8 +4,8 @@ from markdownify import markdownify as md
 import json
 from utils.parsing_preprocessing import split_text_into_components, extract_info_from_url
 
-def main(limit=100):
-    urls_registry = "/Users/anvil/Documents/python/github/ue5_documentalist/src/utils/urls.txt"
+def main(limit, urls_registry, subsections_path):
+    urls_registry = "./src/utils/urls.txt"
     with open(urls_registry, 'r') as f:
         urls = f.read()
     urls = urls.split('\n')
@@ -45,7 +45,7 @@ def main(limit=100):
             "content": preproc_content
         }
     # save dictionary
-    with open('./documents/subsections.json', 'w') as f:
+    with open(subsections_path, 'w') as f:
         json.dump(subsections, f)
 
 
@@ -53,4 +53,7 @@ if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('--limit', type=int, default=None)
-    main(limit=parser.parse_args().limit)
+    parser.add_argument('--urls_registry', type=str, default='./src/utils/urls.txt')
+    parser.add_argument('--subsections_path', type=str, default='./documents/subsections.json')
+    args = parser.parse_args()
+    main(limit=args.limit, urls_registry=args.urls_registry, subsections_path=args.subsections_path)
