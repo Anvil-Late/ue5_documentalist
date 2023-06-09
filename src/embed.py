@@ -63,6 +63,14 @@ def embed(subsection_dict_path, embedder, security):
     elif embedder == "instructor":
         instructor_model = INSTRUCTOR('hkunlp/instructor-xl')
 
+        # set device to gpu if available
+        if (torch.backends.mps.is_available()) and (torch.backends.mps.is_built()):
+            device = torch.device("mps")
+        elif torch.cuda.is_available():
+            device = torch.device("cuda")
+        else:
+            device = torch.device("cpu")
+
     else:
         raise ValueError(f"Embedder must be 'openai' or 'instructor'. Not {embedder}")
     
@@ -95,7 +103,7 @@ def embed(subsection_dict_path, embedder, security):
         # case 2: instructor
         elif embedder == 'instructor':
             instruction = "Represent the UnrealEngine documentation for retrieval:"
-            embedding = instructor_model.encode([[instruction, text_to_embed]], device=torch.device("mps"))
+            embedding = instructor_model.encode([[instruction, text_to_embed]], device=device)
             embedding = [float(x) for x in embedding.squeeze().tolist()]
 
         else:

@@ -26,11 +26,19 @@ def embed_query(query, embedder):
                     model=openai_model
         )
         embedding = response['data'][0]['embedding']
-        
+
     elif embedder == "instructor":
         instructor_model = INSTRUCTOR('hkunlp/instructor-xl')
+         # set device to gpu if available
+        if (torch.backends.mps.is_available()) and (torch.backends.mps.is_built()):
+            device = torch.device("mps")
+        elif torch.cuda.is_available():
+            device = torch.device("cuda")
+        else:
+            device = torch.device("cpu")
+            
         instruction = "Represent the UnrealEngine query for retrieving supporting documents:"
-        embedding = instructor_model.encode([[instruction, query]], device=torch.device("mps"))
+        embedding = instructor_model.encode([[instruction, query]], device=device)
         embedding = [float(x) for x in embedding.squeeze().tolist()]
     else:
         raise ValueError("Embedder must be 'openai' or 'instructor'")
