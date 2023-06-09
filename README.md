@@ -10,6 +10,9 @@ UE5 Documentalist is a Python Project that allows user to make natural language 
 
 Before running the script, you need to perform the following steps:
 
+**Parsed documentation and embeddings are provided in the repo. If you simply want query the Unreal Engine documentation, you can skip directly to step 3.**
+If you want to built this from scratch for your own use case, start from step 1.
+
 1. Parse the documentation using `parse.py`: `python src/parse.py --urls_registry <PATH_TO_URLS_TO_PARSE> --subsections_path <OUTPUT_PATH>`
 2. Embed the subsections using `embed.py`: `python src/embed.py --embedder <EMBEDDER> --subsections_path <OUTPUT_PATH_OF_PARSE.PY>`. Embedder can be either `instructor` or `openai`. If you use `openai`, since it is a pay-as-you-go API, you need to add `--security deactivated`, which is a param I set to avoid running the script by mistake and spend money on it.
 3. Create a Qdrant vector index by running the following commands: `docker pull qdrant/qdrant docker run -d -p 6333:6333 qdrant/qdrant`
