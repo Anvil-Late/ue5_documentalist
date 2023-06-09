@@ -130,7 +130,7 @@ def embed(subsection_dict_path, embedder, security):
 if __name__ == "__main__":
     
     parser = argparse.ArgumentParser()
-    parser.add_argument('--embedder', type=str, default='openai')
+    parser.add_argument('--embedder', type=str, default='instructor')
     parser.add_argument('--subsections_path', type=str, default='./documents/subsections.json')
     parser.add_argument('--security', type=str, default='activated')
     args = parser.parse_args()

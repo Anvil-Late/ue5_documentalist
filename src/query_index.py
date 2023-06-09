@@ -36,7 +36,7 @@ def embed_query(query, embedder):
             device = torch.device("cuda")
         else:
             device = torch.device("cpu")
-            
+
         instruction = "Represent the UnrealEngine query for retrieving supporting documents:"
         embedding = instructor_model.encode([[instruction, query]], device=device)
         embedding = [float(x) for x in embedding.squeeze().tolist()]
@@ -262,7 +262,7 @@ if __name__ == "__main__":
     parser.add_argument('--block_types', type=str, default='text')
     parser.add_argument('--score', type=bool, default=False)
     parser.add_argument('--open_url', type=bool, default=True)
-    parser.add_argument('--embedder', type=str, default='openai')
+    parser.add_argument('--embedder', type=str, default='instructor')
     args = parser.parse_args()
     if args.embedder == 'openai':
         DIMENSION = 1536
