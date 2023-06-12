@@ -18,7 +18,6 @@ def remove_images(string):
     return re.sub('!\[.+\]\(.*\)', '', string)
 
 def remove_header(string):
-
     if len(string) > 0 and string[0] == "#":
         return re.sub('#( *)', '', string)
     return string
@@ -29,16 +28,6 @@ def remove_starting_special_characters(string):
 
 def remove_extra_newlines(string):
     string = re.sub(r'\n{3,}', '\n\n', string)
-    return string
-
-def remove_unicode(string):
-    for uchar in ["\u2500", "\u2514", "\u251c", "\u2502"]:
-        string = string.replace(uchar, "")
-    for uchar in ["\u2588", "\u2019"]:
-        string = string.replace(uchar, "'")
-    for uchar in ["\u201d", "\u201c"]:
-        string = string.replace(uchar, "\"")
-    string = string.replace("\u00a9", "copyright")
     return string
 
 def remove_bolding(string):

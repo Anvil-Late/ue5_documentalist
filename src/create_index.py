@@ -66,8 +66,8 @@ def add_doc_to_index(embeddings, content_dict):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--embedder', type=str, default='openai')
-    parser.add_argument('--embeddings_path', type=str, default='./embeddings/embeddings.json')
+    parser.add_argument('--embedder', type=str, default='instructor')
+    parser.add_argument('--embeddings_path', type=str, default='./embeddings/instructor_embeddings.json')
     parser.add_argument('--content_path', type=str, default='./documents/subsections.json')
     args = parser.parse_args()
 
