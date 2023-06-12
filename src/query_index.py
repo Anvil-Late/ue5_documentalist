@@ -74,10 +74,11 @@ def list_collections():
 
 def query_index(query, embedder, top_k=10, block_types=None):
     """
-    Queries the OpenAI index for documents that match the given query.
+    Queries the Qdrant vector index DB for documents that match the given query.
 
     Args:
         query (str): The query to search for.
+        embedder (str): The embedder to use. Must be either "openai" or "instructor".
         top_k (int, optional): The maximum number of documents to return. Defaults to 10.
         block_types (str or list of str, optional): The types of document blocks to search in. Defaults to "text".
 
@@ -170,10 +171,11 @@ def ue5_docs_search(
     open_url=True
 ):
     """
-    Searches the OpenAI index for documents related to the given query and prints the top results.
+    Searches the Qdrant vector index DB for documents related to the given query and prints the top results.
 
     Args:
         query (str): The query to search for.
+        embedder (str): The embedder to use. Must be either "openai" or "instructor".
         top_k (int, optional): The maximum number of documents to return. Defaults to 10.
         block_types (str or list of str, optional): The types of document blocks to search in. Defaults to "text".
         score (bool, optional): Whether to include the relevance score in the output. Defaults to False.
